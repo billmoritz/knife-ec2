@@ -158,6 +158,17 @@ class Chef
         :description => "Comma separated list of roles/recipes to apply",
         :proc => lambda { |o| o.split(/[\s,]+/) }
 
+      option :secret,
+        :short => "-s SECRET",
+        :long => "--secret ",
+        :description => "The secret key to use to encrypt data bag item values",
+        :proc => lambda { |s| Chef::Config[:knife][:secret] = s }
+
+      option :secret_file,
+        :long => "--secret-file SECRET_FILE",
+        :description => "A file containing the secret key to use to encrypt data bag item values",
+        :proc => lambda { |sf| Chef::Config[:knife][:secret_file] = sf }
+
       option :json_attributes,
         :short => "-j JSON",
         :long => "--json-attributes JSON",
@@ -277,7 +288,7 @@ class Chef
         puts("\n")
 
         # occasionally 'ready?' isn't, so retry a couple times if needed.
-        tries = 6 
+        tries = 6
         begin
           create_tags(hashed_tags) unless hashed_tags.empty?
           associate_eip(elastic_ip) if config[:associate_eip]
@@ -367,6 +378,8 @@ class Chef
         bootstrap.config[:environment] = config[:environment]
         # may be needed for vpc_mode
         bootstrap.config[:host_key_verify] = config[:host_key_verify]
+        bootstrap.config[:secret] = locate_config_value(:secret)
+        bootstrap.config[:secret_file] = locate_config_value(:secret_file)
         # Modify global configuration state to ensure hint gets set by
         # knife-bootstrap
         Chef::Config[:knife][:hints] ||= {}
